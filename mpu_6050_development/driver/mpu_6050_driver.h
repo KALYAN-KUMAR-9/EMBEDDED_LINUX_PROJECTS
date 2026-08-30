@@ -1,3 +1,6 @@
+#ifndef MPU_6050_DRIVER_H
+#define MPU_6050_DRIVER_H
+
 /* * Datasheet refs
  * 1. MPU-6000 and MPU-6050 Product Specification Revision 3.4
  * 2. MPU-6000 and MPU-6050 Register Map and Descriptions Revision 4.2
@@ -154,8 +157,10 @@ typedef struct
 
 
 void mpu_6050_i2c_initilization(void);
-void mpu_6050_i2c_read_accelorometer(void);
-void mpu_6050_i2c_read_gyroscope(void);
-void mpu_6050_write(uint8_t addr, uint8_t data);
-void mpu_6050_read(uint8_t addr, uint8_t *pbuf, uint32_t len);
+void mpu_6050_i2c_read_accelorometer(signed short int *pbuf);
+void mpu_6050_i2c_read_gyroscope(signed short int *pbuf);
+int mpu_6050_write(uint8_t addr, uint8_t data);
+int mpu_6050_read(uint8_t addr, uint8_t *pbuf, uint32_t len);
+void set_mpu_6050_slave_Address(uint8_t slave_addr);
 
+#endif /*MPU_6050_DRIVER_H*/
