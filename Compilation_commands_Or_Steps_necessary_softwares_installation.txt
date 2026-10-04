@@ -1,0 +1,245 @@
+*************************cross tool-chain installation and settings for linux host******************
+
+STEP 1 : Download arm cross toolchain for your Host machine
+
+STEP 2 :  export  path of the cross compilation toolchain. by doing open vi .bashrc and then go last then do press i to insert and enter to next line then add export path as below
+
+export PATH=$PATH:/home/kiran/BBB_Workspace/Downloads/gcc-linaro-6.3.1-2017.02-x86_64_arm-linux-gnueabihf/bin
+
+
+*************************U-boot Compilation ***************************************************
+
+2 methods to compile u-boot.
+
+STEP: 1 --> enter into u-boot source directory by doing cd u-boot-2022.04-bbb.io-am335x-am57xx/
+
+method:1
+--------
+run build-am335x.sh file on ubuntu terminal by doing ./build-am335x.sh
+
+if below error came?
+--------------------
+
+Developers: too make changes: [touch load.menuconfig]
+  HOSTCC  scripts/basic/fixdep
+  HOSTCC  scripts/kconfig/conf.o
+  YACC    scripts/kconfig/zconf.tab.c
+/bin/sh: 1: bison: not found
+make[1]: *** [scripts/Makefile.lib:224: scripts/kconfig/zconf.tab.c] Error 127
+make: *** [Makefile:574: am335x_evm_defconfig] Error 2
+  YACC    scripts/kconfig/zconf.tab.c
+  LEX     scripts/kconfig/zconf.lex.c
+/bin/sh: 1: flex: not found
+make[2]: *** [scripts/Makefile.lib:216: scripts/kconfig/zconf.lex.c] Error 127
+make[2]: *** Waiting for unfinished jobs....
+/bin/sh: 1: bison: not found
+make[2]: *** [scripts/Makefile.lib:224: scripts/kconfig/zconf.tab.c] Error 127
+make[1]: *** [Makefile:574: syncconfig] Error 2
+make: *** No rule to make target 'include/config/auto.conf', needed by 'include/config/uboot.release'.  Stop.
+  YACC    scripts/kconfig/zconf.tab.c
+/bin/sh: 1: bison: not found
+make[1]: *** [scripts/Makefile.lib:224: scripts/kconfig/zconf.tab.c] Error 127
+make: *** [Makefile:574: savedefconfig] Error 2
+cp: cannot stat 'defconfig': No such file or directory
+
+solution:
+--------
+The compilation errors occur because your system is missing bison and flex, which are required parser generators used to build the configuration tools (menuconfig) for U-Boot or the Linux kernel.
+
+You need to install the missing development tools on your host build machine. Run the following command depending on your operating system:
+
+- sudo apt-get update
+- sudo apt-get install bison flex build-essential 
+- sudo apt-get install libssl-dev
+
+
+OR
+
+- sudo apt update && sudo apt install -y bison flex build-essential libssl-dev
+- sudo apt update && sudo apt install -y libncurses-dev
+
+After above softwares are installed in ubuntu PC then run again ./build-am335x.sh
+
+Method:2
+--------
+STEP 1: distclean : deletes all the previously compiled/generated object files. 
+
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- distclean
+
+STEP 2 : apply board default configuration for uboot
+
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- am335x_evm_defconfig
+
+STEP 3 : run menuconfig, if you want to do any settings other than default configuration . 
+
+make CROSS_COMPILE=arm-linux-gnueabihf-  menuconfig
+
+Error will come when above step ran for first time:
+
+kalyan-kumar@kalyan-kumar:~/Downloads/u-boot-2022.04-bbb.io-am335x-am57xx$ make CROSS_COMPILE=arm-linux-gnueabihf-  menuconfig
+*
+* Unable to find the ncurses package.
+* Install ncurses (ncurses-devel or libncurses-dev
+* depending on your distribution).
+*
+make[1]: *** [scripts/kconfig/Makefile:224: scripts/kconfig/.mconf-cfg] Error 1
+make: *** [Makefile:574: menuconfig] Error 2
+
+-- Do run on terminal sudo apt update && sudo apt install -y libncurses-dev
+
+STEP 4 : compile 
+
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -j4  // -j4(4 core machine) will instruct the make tool to spawn 4 threads
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -j8  // -j8(8 core machine) will instruct the make tool to spawn 8 threads
+
+************************* linux compilation ***************************************************
+STEP 1:
+ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- distclean
+ 
+STEP 2:
+ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bb.org_defconfig
+ 
+STEP 3:
+ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- menuconfig
+ 
+STEP 4:
+ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage dtbs LOADADDR=0x80008000 -j4
+ 
+ In this step error come:
+ ------------------------
+   HOSTCC  scripts/kallsyms
+In file included from /home/kalyan-kumar/Downloads/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/7.5.0/plugin/include/gcc-plugin.h:28,
+                 from scripts/gcc-plugins/gcc-common.h:7,
+                 from scripts/gcc-plugins/arm_ssp_per_task_plugin.c:3:
+/home/kalyan-kumar/Downloads/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/7.5.0/plugin/include/system.h:687:10: fatal error: gmp.h: No such file or directory
+  687 | #include <gmp.h>
+      |          ^~~~~~~
+
+Solution:
+---------
+The compilation error occurs because your host system is missing the GMP (GNU Multiple Precision Arithmetic) library development headers.
+install the missing GMP development package along with other standard mathematical libraries often required by GCC plugins on Ubuntu 24.04
+
+- sudo apt-get update
+- sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
+
+Again error come:
+----------------
+  SORTTAB vmlinux
+  SYSMAP  System.map
+  OBJCOPY arch/arm/boot/Image
+  Kernel: arch/arm/boot/Image is ready
+  LDS     arch/arm/boot/compressed/vmlinux.lds
+  AS      arch/arm/boot/compressed/head.o
+  LZ4     arch/arm/boot/compressed/piggy_data
+  CC      arch/arm/boot/compressed/misc.o
+/bin/sh: 1: lz4c: not found
+  CC      arch/arm/boot/compressed/decompress.o
+make[2]: *** [arch/arm/boot/compressed/Makefile:188: arch/arm/boot/compressed/piggy_data] Error 127
+make[2]: *** Deleting file 'arch/arm/boot/compressed/piggy_data'
+make[2]: *** Waiting for unfinished jobs....
+make[1]: *** [arch/arm/boot/Makefile:64: arch/arm/boot/compressed/vmlinux] Error 2
+make: *** [arch/arm/Makefile:327: zImage] Error 2
+
+Solution:
+--------
+The build failed because your host system is missing the LZ4 compression utility. The Linux kernel build framework tries to call lz4c to pack your kernel binary into a compressed image file (piggy_data). [1, 2, 3] 
+## The Fix
+Install the missing LZ4 legacy tools and developer packaging files depending on your Ubuntu version: [3, 4] 
+
+- sudo apt update && sudo apt install -y liblz4-tool lz4
+
+again error come:
+-----------------
+  OBJCOPY arch/arm/boot/zImage
+  Kernel: arch/arm/boot/zImage is ready
+  UIMAGE  arch/arm/boot/uImage
+"mkimage" command not found - U-Boot images will not be built
+make[1]: *** [arch/arm/boot/Makefile:91: arch/arm/boot/uImage] Error 1
+make: *** [arch/arm/Makefile:327: uImage] Error 2
+
+solution:
+---------
+The compilation error occurs because the kernel build script cannot find the mkimage command. Even though your zImage built successfully, the system cannot wrap it into the uImage format that U-Boot needs to boot.This directly connects to the u-boot-tools command you asked about earlier—this is exactly why you need it!
+
+- sudo apt update && sudo apt install -y u-boot-tools
+
+
+STEP 5:
+ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -j4 modules
+
+STEP 6:
+ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- INSTALL_MOD_PATH=<path of the RFS> modules_install
+
+
+
+************************* Busy box compilation ***************************************************
+
+STEP 1: download busybox <https://busybox.net/downloads/>
+
+STEP 2 : Apply default configuration
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- defconfig
+
+STEP 3 : change default settings if you want 
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- menuconfig
+
+STEP 4 : generate the busy box binary and minimal file system 
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- CONFIG_PREFIX=<install_path> install
+
+to know size of RFS: run <du -sh> or list of RFS <du -h> command
+
+To know the type of busybox: cd bin --> run "file busybox" command
+To know the busybox binary size: cd bin/ -> run "ls -l busybox" command
+
+
+BYSY BOX ROOTFS boot:
+====================
+Problem while boooting kernel and mounting RFS:
+--------------------------------------------------
+4.430699] of_cfs_init
+[    4.430779] of_cfs_init: OK
+[    4.441412] mmcblk0: mmc0:aaaa SC16G 14.8 GiB 
+[    4.447388]  mmcblk0: p1 p2
+[    4.511551] EXT4-fs (mmcblk0p2): recovery complete
+[    4.511603] EXT4-fs (mmcblk0p2): mounted filesystem with ordered data mode. Opts: (null)
+[    4.511730] VFS: Mounted root (ext4 filesystem) on device 179:770.
+[    4.514217] devtmpfs: error mounting -2
+[    4.516193] Freeing unused kernel memory: 1024K
+[    4.516950] Run /sbin/init as init process
+[    4.516959]   with arguments:
+[    4.516966]     /sbin/init
+[    4.516971]     earlyprintk
+[    4.516976]   with environment:
+[    4.516981]     HOME=/
+[    4.516985]     TERM=linux
+[    4.534668] Not activating Mandatory Access Control as /sbin/tomoyo-init does not exist.
+[    4.545800] Run /etc/init as init process
+[    4.545821]   with arguments:
+[    4.545829]     /etc/init
+[    4.545834]     earlyprintk
+[    4.545840]   with environment:
+[    4.545844]     HOME=/
+[    4.545849]     TERM=linux
+[    4.546335] Run /bin/init as init process
+[    4.546348]   with arguments:
+[    4.546354]     /bin/init
+[    4.546358]     earlyprintk
+[    4.546363]   with environment:
+[    4.546367]     HOME=/
+[    4.546371]     TERM=linux
+[    4.546573] Run /bin/sh as init process
+[    4.546582]   with arguments:
+[    4.546587]     /bin/sh
+[    4.546592]     earlyprintk
+[    4.546597]   with environment:
+[    4.546601]     HOME=/
+[    4.546605]     TERM=linux
+[    4.547126] Kernel panic - not syncing:
+[    4.547137] No working init found.  Try passing init= option to kernel. See Linux Documentation/admin-guide/init.rst for guidance.
+[    5.641983] ---[ end Kernel panic - not syncing: No working init found.  Try passing init= option to kernel. See Linux Documentation/admin-guide/init.rst for guidance. ]---
+
+
+create "dev" folder at root file system then boot.
+
+
+beaglebone_defconfig

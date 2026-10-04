@@ -1,0 +1,31 @@
+AM3325X Pin details, SYSFS Control, GPIOS:
+==========================================
+
+Links:
+========
+https://www.kernel.org/doc/Documentation/gpio/sysfs.txt
+
+pre-Requisites:
+===============
+1. With you must have AM3325X TRM, DATASHEET, BBB_SRM Document for reading pin/pad configuration
+2. Must understand the DATASHEET and DRM and TRM before going to further understanding.
+Steps:
+
+1. Login to Beagle bone black board.
+2. To check the active GPIO mappings inside the /sys/class/gpio/ directory on the TI-configured 5.10.168-ti-r83 kernel for the BeagleBone Black, you can query the system variables using direct terminal lookups. The 5.10-ti kernel structures its architecture so that raw hardware pins are not automatically visible as named folders under /sys/class/gpio/ until you manually calculate their global offset and export them.
+
+- Step 1: Find Your Active Base Chips
+	- The TI kernel handles the AM335x SoC's 4 physical GPIO banks by dividing them into virtual filesystem adapters. Find their dynamic addresses by running: ls -l /sys/class/gpio/gpiochip*
+
+	- This will reveal your system's 4 core chip anchors (gpiochip0, gpiochip32, gpiochip64, gpiochip96). Each bank manages exactly 32 individual logic lines:gpiochip0 tracks hardware register lines GPIO0_0 to GPIO0_31gpiochip32 tracks hardware register lines GPIO1_0 to GPIO1_31gpiochip64 tracks hardware register lines GPIO2_0 to GPIO2_31gpiochip96 tracks hardware register lines GPIO3_0 to GPIO3_31
+	
+- Step 2: Read the Entire Pin Allocation Table
+	-	To see a real-time summary of which hardware lines are already requested by the kernel (like LEDs or I2C devices) and which numbers are free for you to claim, query the kernel debug interface file: sudo cat /sys/kernel/debug/gpio
+
+	- This outputs a detailed text array showing every active line, its pin label (e.g., P9_23), and its current input/output state.
+	
+	
+
+3. To move into pincontrol folder: run cmd: cd /sys/kernel/debug/pinctrl   --> in this folder pin control BASE+OFFSET folder present. /sys/kernel/debug/pinctrl/44e10800.pinmux-pinctrl-single -> in this folder having "pins", "pingroups", "pinmux-functions" to see
+4. run cmd: cat pins | more --> this will give details of pins software naming used by the kernel.
+5. If you need to translate a physical reference manual layout name (like GPIO1_21) into the raw integer file node required by /sys/class/gpio/export, apply the base shift calculation: Convert GPIO1_21 board pin number to kernel frendly number is --> (Bank number * 32)+ pin index = kernel frendly GPIO number. ex: 1 x 32 +21 = GPIO53

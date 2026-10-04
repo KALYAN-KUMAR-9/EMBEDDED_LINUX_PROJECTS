@@ -1,0 +1,58 @@
+Kernel module drivers step by step:
+==================================
+
+1.Download the same linux kernel which is running in beagle bone black in to ubuntu PC for kernel headers. To know which kernel is running in beagle bone black, run uname -ar command in beagle bone black terminal.
+2. In beagle bone black running kernel version is 5.10.168-ti-r83. So, download the kernel from PATH: https://github.com/beagleboard/linux/tree/v5.10.168-ti-r83 by uisng git clone https://github.com/beagleboard/linux/tree/v5.10.168-ti-r83 command. 
+3. Checkout to git checkout 5.10.168-ti-r83. Here head will detach. Compile the complete kernel by using below commands.
+
+STEP 1:
+ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- distclean
+ 
+STEP 2:
+ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bb.org_defconfig
+ 
+STEP 3:
+ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- menuconfig
+ 
+STEP 4:
+ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage dtbs LOADADDR=0x80008000 -j4
+ 
+STEP 5:
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -j4 modules
+
+4. Write the driver which is required.
+
+5. Update the make file as below.
+# Default kernel directory if ARCH is set, otherwise fall back to host
+ifdef ARCH
+  KDIR = /home/kalyan-kumar/Desktop/BBB_Learning_WorkSpace/linux
+endif
+
+all:
+        make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -C $(KDIR) M=$(shell pwd) modules
+
+clean:
+        make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -C $(KDIR) M=$(shell pwd) clean
+
+here, "KDIR = /home/kalyan-kumar/Desktop/BBB_Learning_WorkSpace/linux " is the path of the linux kernel root folder. It must be compiled in step 3 before kernel driver compile.
+
+6. You can cross-compile the Linux device driver using the below command.6.
+ sudo make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi-	
+
+7. Then copy the driver to the Beaglebone using the below command.
+ 
+sudo rsync -avz *.ko beagle@192.168.6.2:/home/debian
+
+8. connect to ssh by using command: 
+ssh beagle@192.168.6.2 --> beagle bone hw SSH connection. 
+pw: beagle
+
+9. run "sudo insmod 01_hello.ko" to insert module
+
+10. run sudo dmesg command in another terminal to see the kernel logs.
+
+11. run "sudo rmmod 01_hello" to remove the module
+
+11. see the terminal which dmesg command already ran.
+
+

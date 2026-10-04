@@ -1,0 +1,139 @@
+=> printenv
+arch=arm
+args_mmc=run finduuid;setenv bootargs console=${console} ${cape_uboot} root=PARTUUID=${uuid} ro rootfstype=${mmcrootfstype} ${uboot_detected_capes} ${cmdline}
+args_mmc_old=setenv bootargs console=${console} ${optargs} ${cape_uboot} root=${oldroot} ro rootfstype=${mmcrootfstype} ${uboot_detected_capes} ${cmdline}
+args_mmc_uuid=setenv bootargs console=${console} ${optargs} ${cape_uboot} root=UUID=${uuid} ro rootfstype=${mmcrootfstype} ${uboot_detected_capes} ${cmdline}
+args_netinstall=setenv bootargs ${netinstall_bootargs} ${optargs} ${cape_uboot} root=/dev/ram rw ${uboot_detected_capes} ${cmdline}
+args_uenv_root=setenv bootargs console=${console} ${optargs} ${cape_uboot} root=${uenv_root} ro rootfstype=${mmcrootfstype} ${uboot_detected_capes} ${cmdline}
+baudrate=115200
+board=am335x
+board_eeprom_header=undefined
+board_name=A335BNLT
+board_rev=00C0
+board_serial=2150SBB24754
+boot=${devtype} dev ${mmcdev}; if ${devtype} rescan; then gpio set 54;setenv bootpart ${mmcdev}:1; if test -e ${devtype} ${bootpart} /etc/fstab; then setenv mmcpart 1;fi; echo Checkin;
+boot_a_script=load ${devtype} ${devnum}:${distro_bootpart} ${scriptaddr} ${prefix}${script}; source ${scriptaddr}
+boot_efi_binary=load ${devtype} ${devnum}:${distro_bootpart} ${kernel_addr_r} efi/boot/bootarm.efi; if fdt addr ${fdt_addr_r}; then bootefi ${kernel_addr_r} ${fdt_addr_r};else bootefii
+boot_efi_bootmgr=if fdt addr ${fdt_addr_r}; then bootefi bootmgr ${fdt_addr_r};else bootefi bootmgr;fi
+boot_extlinux=sysboot ${devtype} ${devnum}:${distro_bootpart} any ${scriptaddr} ${prefix}${boot_syslinux_conf}
+boot_fdt=try
+boot_net_usb_start=usb start
+boot_prefixes=/ /boot/
+boot_script_dhcp=boot.scr.uimg
+boot_scripts=boot.scr.uimg boot.scr
+boot_syslinux_conf=extlinux/extlinux.conf
+boot_targets=mmc0 legacy_mmc0 mmc1 legacy_mmc1 usb0 pxe dhcp 
+bootcmd=run findfdt; run init_console; run envboot; run distro_bootcmd
+bootcmd_dhcp=devtype=dhcp; run boot_net_usb_start; if dhcp ${scriptaddr} ${boot_script_dhcp}; then source ${scriptaddr}; fi;setenv efi_fdtfile ${fdtfile}; if test -z "${fdtfile}" -a -;
+bootcmd_legacy_mmc0=gpio clear 56; gpio clear 55; gpio clear 54; gpio set 53; setenv devtype mmc; setenv mmcdev 0; setenv bootpart 0:1 ; run boot
+bootcmd_legacy_mmc1=gpio clear 56; gpio clear 55; gpio clear 54; gpio set 53; setenv devtype mmc; setenv mmcdev 1; setenv bootpart 1:1 ; run boot
+bootcmd_mmc0=devnum=0; run mmc_boot
+bootcmd_mmc1=devnum=1; run mmc_boot
+bootcmd_pxe=run boot_net_usb_start; dhcp; if pxe get; then pxe boot; fi
+bootcmd_usb0=devnum=0; run usb_boot
+bootcount=1
+bootdelay=0
+bootdir=/boot
+bootenv=uEnv.txt
+bootenvfile=uEnv.txt
+bootfile=zImage
+bootm_size=0x10000000
+bootpart=0:2
+bootscript=echo Running bootscript from mmc${bootpart} ...; source ${loadaddr}
+console=ttyS0,115200n8
+cpu=armv7
+dfu_alt_info_emmc=rawemmc raw 0 3751936;boot part 1 1;rootfs part 1 2;MLO fat 1 1;MLO.raw raw 0x100 0x200;u-boot.img.raw raw 0x300 0x1000;u-env.raw raw 0x1300 0x200;spl-os-args.raw ra1
+dfu_alt_info_mmc=boot part 0 1;rootfs part 0 2;MLO fat 0 1;MLO.raw raw 0x100 0x200;u-boot.img.raw raw 0x300 0x1000;u-env.raw raw 0x1300 0x200;spl-os-args.raw raw 0x1500 0x200;spl-os-i1
+dfu_alt_info_ram=kernel ram 0x80200000 0x4000000;fdt ram 0x80f80000 0x80000;ramdisk ram 0x81000000 0x4000000
+distro_bootcmd=for target in ${boot_targets}; do run bootcmd_${target}; done
+dtboaddr=0x89000000
+eeprom_bbb_header=i2c dev 0; i2c mw 0x50 0x00.2 aa; i2c mw 0x50 0x01.2 55; i2c mw 0x50 0x02.2 33; i2c mw 0x50 0x03.2 ee; i2c mw 0x50 0x04.2 41; i2c mw 0x50 0x05.2 33; i2c mw 0x50 0x06 
+eeprom_bbbl_footer= i2c mw 0x50 0x0c.2 42; i2c mw 0x50 0x0d.2 4c; i2c mw 0x50 0x0e.2 41; i2c mw 0x50 0x0f.2 32; 
+eeprom_bbbw_footer= i2c mw 0x50 0x0c.2 42; i2c mw 0x50 0x0d.2 57; i2c mw 0x50 0x0e.2 41; i2c mw 0x50 0x0f.2 35; 
+eeprom_bbgg_footer= i2c mw 0x50 0x0c.2 47; i2c mw 0x50 0x0d.2 47; i2c mw 0x50 0x0e.2 31; i2c mw 0x50 0x0f.2 41; 
+eeprom_beaglelogic= i2c mw 0x50 0x00.2 aa; i2c mw 0x50 0x01.2 55; i2c mw 0x50 0x02.2 33; i2c mw 0x50 0x03.2 ee; i2c mw 0x50 0x04.2 41; i2c mw 0x50 0x05.2 33; i2c mw 0x50 0x06.2 33; i2 
+eeprom_blank=i2c dev 0; i2c mw 0x50 0x00.2 ff; i2c mw 0x50 0x01.2 ff; i2c mw 0x50 0x02.2 ff; i2c mw 0x50 0x03.2 ff; i2c mw 0x50 0x04.2 ff; i2c mw 0x50 0x05.2 ff; i2c mw 0x50 0x06.2 ff 
+eeprom_dump=i2c dev 0; i2c md 0x50 0x00.2 20; 
+eeprom_pocketbeagle= i2c mw 0x50 0x00.2 aa; i2c mw 0x50 0x01.2 55; i2c mw 0x50 0x02.2 33; i2c mw 0x50 0x03.2 ee; i2c mw 0x50 0x04.2 41; i2c mw 0x50 0x05.2 33; i2c mw 0x50 0x06.2 33; i 
+eeprom_program=if test $board_eeprom_header = bbb_blank; then run eeprom_dump; run eeprom_blank; run eeprom_bbb_header; run eeprom_dump; reset; fi; if test $board_eeprom_header = bbbl 
+efi_dtb_prefixes=/ /dtb/ /dtb/current/
+envboot=mmc dev ${mmcdev}; if mmc rescan; then echo SD/MMC found on device ${mmcdev};if run loadbootscript; then run bootscript;else if run loadbootenv; then echo Loaded env from ${bo;
+eth1addr=60:b6:e1:19:04:dc
+eth2addr=60:b6:e1:19:04:da
+eth3addr=de:ad:be:ef:00:01
+ethaddr=60:b6:e1:19:04:da
+fdt_addr_r=0x88000000
+fdtaddr=0x88000000
+fdtcontroladdr=9df32150
+fdtfile=undefined
+fdtoverlay_addr_r=0x89000000
+findfdt=echo board_name=[$board_name] ...; if test $board_name = A335BLNK; then echo EEPROM IS BLANK!!! ...; echo Assuming am335x-bonegreen compatible ...; setenv fdtfile am335x-boneg 
+finduuid=part uuid ${devtype} ${bootpart} uuid
+ice_mii=mii
+importbootenv=echo Importing environment from ${devtype} ...; env import -t ${loadaddr} ${filesize}
+init_console=if test $board_name = A335_ICE; then setenv console ttyS3,115200n8;elif test $board_name = A335BLGC; then setenv console ttyS4,115200n8;else setenv console ttyS0,115200n8;
+kernel_addr_r=0x82000000
+load_efi_dtb=load ${devtype} ${devnum}:${distro_bootpart} ${fdt_addr_r} ${prefix}${efi_fdtfile}
+loadaddr=0x82000000
+loadbootenv=load ${devtype} ${bootpart} ${loadaddr} ${bootenvfile}
+loadbootscript=load ${devtype} ${bootpart} ${loadaddr} ${scriptfile};
+loadfdt=echo loading ${fdtdir}/${fdtfile} ...; load ${devtype} ${bootpart} ${fdtaddr} ${fdtdir}/${fdtfile}
+loadimage=load ${devtype} ${bootpart} ${loadaddr} ${bootdir}/${bootfile}
+loadoverlay=echo uboot_overlays: loading ${actual_uboot_overlay} ...; load ${devtype} ${bootpart} ${rdaddr} ${actual_uboot_overlay}; fdt addr ${fdtaddr}; fdt resize ${fdt_buffer}; fdt;
+loadramdisk=load mmc ${mmcdev} ${rdaddr} ramdisk.gz
+loadrd=load ${devtype} ${bootpart} ${rdaddr} ${bootdir}/${rdfile}; setenv rdsize ${filesize}
+mmc_boot=if mmc dev ${devnum}; then devtype=mmc; run scan_dev_for_boot_part; fi
+mmcboot=mmc dev ${mmcdev}; devnum=${mmcdev}; devtype=mmc; if mmc rescan; then echo SD/MMC found on device ${mmcdev};if run loadimage; then run args_mmc; if test ${boot_fit} -eq 1; the;
+mmcdev=0
+mmcloados=if test ${boot_fdt} = yes || test ${boot_fdt} = try; then if run loadfdt; then if test -n ${uname_r}; then bootz ${loadaddr} ${rdaddr}:${rdsize} ${fdtaddr}; else bootz ${loa;
+mmcrootfstype=ext4 rootwait
+netargs=setenv bootargs console=${console} ${optargs} root=/dev/nfs nfsroot=${serverip}:${rootpath},${nfsopts} rw ip=dhcp
+netboot=echo Booting from network ...; setenv autoload no; dhcp; run netloadimage; run netloadfdt; run netargs; bootz ${loadaddr} - ${fdtaddr}
+netloadfdt=tftp ${fdtaddr} ${fdtfile}
+netloadimage=tftp ${loadaddr} ${bootfile}
+nfsopts=nolock
+partitions=uuid_disk=${uuid_gpt_disk};name=bootloader,start=384K,size=1792K,uuid=${uuid_gpt_bootloader};name=rootfs,start=2688K,size=-,uuid=${uuid_gpt_rootfs}
+pxefile_addr_r=0x80100000
+ramargs=setenv bootargs console=${console} ${optargs} root=${ramroot} rootfstype=${ramrootfstype}
+ramboot=echo Booting from ramdisk ...; run ramargs; bootz ${loadaddr} ${rdaddr} ${fdtaddr}
+ramdisk_addr_r=0x88080000
+ramroot=/dev/ram0 rw
+ramrootfstype=ext2
+rdaddr=0x88080000
+rootpath=/export/rootfs
+scan_dev_for_boot=echo Scanning ${devtype} ${devnum}:${distro_bootpart}...; for prefix in ${boot_prefixes}; do run scan_dev_for_extlinux; run scan_dev_for_scripts; done;run scan_dev_f;
+scan_dev_for_boot_part=part list ${devtype} ${devnum} -bootable devplist; env exists devplist || setenv devplist 1; for distro_bootpart in ${devplist}; do if fstype ${devtype} ${devnut
+scan_dev_for_efi=setenv efi_fdtfile ${fdtfile}; if test -z "${fdtfile}" -a -n "${soc}"; then setenv efi_fdtfile ${soc}-${board}${boardver}.dtb; fi; for prefix in ${efi_dtb_prefixes}; e
+scan_dev_for_extlinux=if test -e ${devtype} ${devnum}:${distro_bootpart} ${prefix}${boot_syslinux_conf}; then echo Found ${prefix}${boot_syslinux_conf}; run boot_extlinux; echo SCRIPTi
+scan_dev_for_scripts=for script in ${boot_scripts}; do if test -e ${devtype} ${devnum}:${distro_bootpart} ${prefix}${script}; then echo Found U-Boot script ${prefix}${script}; run booe
+script=boot.scr
+scriptaddr=0x80000000
+scriptfile=${script}
+serial#=2150SBB24754
+soc=am33xx
+spiargs=setenv bootargs console=${console} ${optargs} root=${spiroot} rootfstype=${spirootfstype}
+spiboot=echo Booting from spi ...; run spiargs; sf probe ${spibusno}:0; sf read ${loadaddr} ${spisrcaddr} ${spiimgsize}; bootz ${loadaddr}
+spibusno=0
+spiimgsize=0x362000
+spiroot=/dev/mtdblock4 rw
+spirootfstype=jffs2
+spisrcaddr=0xe0000
+static_ip=${ipaddr}:${serverip}:${gatewayip}:${netmask}:${hostname}::off
+stderr=serial@0
+stdin=serial@0
+stdout=serial@0
+uboot_base_dtb=am335x-boneblack-uboot.dtb
+uboot_base_dtb_univ=am335x-boneblack-uboot-univ.dtb
+uboot_emmc=BB-BONE-eMMC1-01-00A0.dtbo
+uboot_video=BB-HDMI-TDA998x-00A0.dtbo
+uboot_video_naudio=BB-NHDMI-TDA998x-00A0.dtbo
+uname_boot=setenv bootdir /boot; setenv bootfile vmlinuz-${uname_r}; if test -e ${devtype} ${bootpart} ${bootdir}/${bootfile}; then echo loading ${bootdir}/${bootfile} ...; run loadim;
+usb_boot=usb start; if usb dev ${devnum}; then devtype=usb; run scan_dev_for_boot_part; fi
+usbnet_devaddr=de:ad:be:ef:00:01
+vendor=ti
+ver=U-Boot 2022.04-g5509547b (Jan 22 2026 - 19:56:08 +0000)
+virtualloadoverlay=if test -e ${devtype} ${bootpart} ${fdtdir}/${uboot_overlay}; then setenv actual_uboot_overlay ${fdtdir}/${uboot_overlay}; run loadoverlay;else if test -e ${devtype;
+
+Environment size: 25251/131068 bytes
+=> printenv soc
+soc=am33xx

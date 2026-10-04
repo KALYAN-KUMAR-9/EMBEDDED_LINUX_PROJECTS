@@ -1,0 +1,263 @@
+Beagle bone board setup step by step:
+===================================
+1. Install ubuntu in virtual machine and make sure istall guest additions.
+2. make sure all the tools installed by using "sudo apt-get update" command
+3. Verify weather minicom is installed or not in ubuntu by using "sudo minicom" command
+4. if not installed then use command "sudo apt-get install minicom" to install minocom.
+5. connect USB to TTL converter to your PC and connect via virtual machine from "devices" option in virtual machine.
+6. If not connected then run commands "1. sudo groupadd vboxusers", "2. sudo usermod -G vboxusers -a $USER" then restart ubuntu.
+7. run command on terminal "sudo dmesg | grep tty" to know USB to TTL converter which USB port it is connected.
+8. run command on terminal "sudo dmesg". By default "dmesg" command is not run un unprivilized mode so "sudo" is required to use.
+
+
+9. To Install Gparted application for making partitions of SD card: run command: sudo apt install -y gparted
+10 To install dosfstools: run  comamnd in command line: sudo apt update && sudo apt install dosfstools mtools -y
+11. Make sure check with by running "dmesg" command in terminal for checking with partition our SD card is present weather it is sda or sdb.
+12. select SD card device partition. While doing work i found with name "sdb"
+13. Create FAT 16 partition for BOOT and marked with "boot" flag.
+14. Create ext3 file system partition for ROOTFS. Once this is completed then apply changes.
+15. copy MLO and u-boot.img file to "BOOT" partition. to copy use command ex: "cp MLO-beaglebone-2013.04 /media/kalyan-kumar/BOOT/MLO". MLO file must be "MLO" only then only ROM can identify the MLO file. uEnv.txt to be written into BOOT partition for giving information how to boot kernel. To copy to ROOTFS from kernel folders use command: Actually manay folders need to copy to ROOTFS partition. run comamnd "sudo cp -r * /media/kalyan-kumar/ROOTFS/"
+
+TO know which image flashed on to the EMMC memory default: use command to run in beaglebone hardware after login, lsb_release -a
+
+
+U-boot commands to decode u-boot header information:
+=======================================================
+1. press space bar while u-boot is loading. This input will stop autoboot of kernel
+
+commands:
+========
+1. load the uImage from ROOTFS /boot/uImage by using : load mmc 0:2 0x82000000 /boot/uImage   -> load <interface> [<dev[:part]> [<addr> [<filename> [bytes [pos]]]]]
+    - Load binary file 'filename' from partition 'part' on device
+       type 'interface' instance 'dev' to address 'addr' in memory.
+      'bytes' gives the size to load in bytes.
+      If 'bytes' is 0 or omitted, the file is read until the end.
+      'pos' gives the file byte position to start reading from.
+      If 'pos' is 0 or omitted, the file is read from the start.
+      All numeric parameters are assumed to be decimal,
+      unless specified otherwise using a leading "0x".
+2. RAM dumping: use command: md 0x82000000 <words>            --> to read address in little endian format.
+3. U-Boot# help imi
+iminfo - print header information for application image
+
+Usage:
+iminfo addr [addr ...]
+    - print header information for application image starting at
+      address 'addr' in memory; this includes verification of the
+      image contents (magic number, header and payload checksums)
+U-Boot# imi 0x82000000
+## Checking Image at 82000000 ...
+   Legacy image found
+   Image Name:   Angstrom/3.8.10/beaglebone
+   Image Type:   ARM Linux Kernel Image (uncompressed)
+   Data Size:    4002016 Bytes = 3.8 MiB
+   Load Address: 80008000
+   Entry Point:  80008000
+   Verifying Checksum ... OK
+
+
+U-boot source code link: https://ftp.denx.de/pub/u-boot/
+
+connect via SSH: ssh debian@192.168.6.2
+
+to open balena etcher in linux by using command line, Note: must not run in root as a sudo user: ./balena-etcher --no-sandbox
+
+BootOrder not defined                                                   
+EFI boot manager: Cannot load any image                                 
+gpio: pin 56 (gpio 56) value is 0                                       
+gpio: pin 55 (gpio 55) value is 0                                       
+gpio: pin 54 (gpio 54) value is 0                                       
+gpio: pin 53 (gpio 53) value is 1                                       
+switch to partitions #0, OK                                             
+mmc1(part 0) is current device                                          
+gpio: pin 54 (gpio 54) value is 1                                       
+Checking for: /uEnv.txt ...                                             
+Checki
+
+ Quick Checklist for Flashing:Wait for the blue LEDs to go completely dark, then unplug the power cable.Press and hold the physical BOOT button (located right above the microSD card slot).While holding the button, plug the power cable back in.Keep holding the button for a few seconds until the LEDs light up, then let go.Watch for the cyclic, chasing "Knight Rider" LED pattern—this means it is actively writing to the eMMC.Once the LEDs turn completely solid or the board shuts down, unplug the power and remove the microSD card.
+ 
+ This snippet is the modern configuration setting used to turn your BeagleBone Black into an automatic system burner. It is the updated version of the old flashing script (init-eMMC-flasher-v3.sh) for newer operating systems like Debian 11 and Debian 12.🔍 What Do the Lines Mean?# (The Comment Character): The hashtag at the start of the second line means this instruction is currently turned off (disabled). The computer ignores it during boot up.cmdline=init=: This tells the Linux kernel to skip loading the normal operating system desktop or login prompt when the board turns on. Instead, it forces the board to run a single specific script immediately./usr/sbin/init-beagle-flasher: This is the path to the internal utility program created by BeagleBoard developers. When activated, this utility completely wipes the onboard 4GB eMMC storage drive and copies everything from your microSD card directly onto the board's internal chip.🛠️ How to Use It for Your ProjectBecause you are using Debian 12 (Bookworm), this is the exact line you need to use instead of the older init-eMMC-flasher-v3.sh script.To use it to flash your board:Open the file (sudo nano /boot/uEnv.txt) inside your terminal.Use your arrow keys to go down to this line.Delete the # symbol from the front of the second line so it looks exactly like this:text##enable Generic eMMC Flasher:                                          
+cmdline=init=/usr/sbin/init-beagle-flasher
+Use code with caution.Save the file (Ctrl + O, then Enter, then Ctrl + X).Turn off the board, hold down the physical BOOT button, and plug the power back in to start the automatic copy process.Once the copy is finished, remember to remove the SD card so it does not keep loop-flashing every time you reboot.Are you ready to run the flashing process now, or would you like to double-check any other settings in your uEnv.txt file before restarting the board?
+
+password:beagle
+
+
+BOOT from SD card with new ROOTFS(ext4):
+==================================================
+lsblk: this command view the partitions on the SD card in linux terminal
+
+
+1. Remount the Boot Partition (If Missing):
+If you see the partition in lsblk (e.g., as sdb1 or sdc1) but the MOUNTPOINT column is blank, manually create the directory and mount it:
+sudo mkdir -p /media/kalyan-kumar/BOOT
+sudo mkdir -p /media/kalyan-kumar/ROOTFS
+
+sudo mount /dev/sdb1 /media/kalyan-kumar/BOOT
+sudo mount /dev/sdb2 /media/kalyan-kumar/ROOTFS
+
+sudo apt update && sudo apt upgrade -y
+
+sudo umount -l /media/kalyan-kumar/ROOTFS
+sudo umount -l /media/kalyan-kumar/rootfs
+
+Copy the Rootfs Securely Using rsync. Do not use cp -r to copy a Linux root filesystem. It will fail because it cannot handle special system links, hardware nodes, or socket pipes. Once your card is repaired and mounted, run this command:
+
+right click on .img rootfs file afte unxz then click on it. After this step "rootfs" is mounted on linux pc.
+
+next do run : sudo rsync -aHAXxv /media/kalyan-kumar/rootfs/ /media/kalyan-kumar/ROOTFS/
+next: sync --Flush the Memory Cache: Before you disconnect the card, force the system to write all cached data from your computer's RAM directly to the physical storage cells:
+
+
+uEnv.txt and initramfs:
+=======================
+
+Practice:
+========
+board_name=A335BNLT
+=> printenv serverip
+## Error: "serverip" not defined
+=> setenv serverip 192.168.27.1
+=> printenv serverip 
+serverip=192.168.27.1
+=> 
+
+
+Load kernel from u-boot commands:
+=================================
+- Load the linux kernel image to the DDR memory from mmc 0(SD card) interface.
+load mmc 0:1 0x82000000 uImage
+
+- Load the dtb image to the DDR memory from mmc 0(SD card) interface.
+load mmc 0:1 0x88000000 am335x-boneblack.dtb
+
+- Send bootargs to the linux kernel from u-boot
+setenv bootargs console=ttyO0,115200 root=/dev/mmcblk0p2 rw		#root=/dev/mmcblk1p3 rw -->from eMMC ROOTFS  #root=/dev/mmcblk0p2 rw	-->from SD card rootfs
+
+- Boot from memory command
+bootm 0x82000000 - 0x88000000		syntax: bootm <kernel image load address> - <DTB load address>
+
+uEnv.txt writing and load from u-boot commands via minicom serial protocols:
+===========================================================================
+1. write uEnv.txt file Note: after writing commands in file make sure add new line by giving enter.
+2. type "loady" command then press ctrl+a then s in keyboard. serial protocol list popup open so select protocol and goto path where uEnv.txt is stored by uisng up or down navgation keys for up and down, for select press 1 time space bar, press space bar 2 times to go into that folder.
+3. Once transfer is completed then do next step 4.
+4. env import -t <memory addr> <size in bytes>
+
+
+ 4.409714] [drm] Initialized tilcdc 1.0.0 20121205 for 4830e000.lcdc on minor 0
+[    4.410217] tilcdc 4830e000.lcdc: [drm] Cannot find any crtc or sizes
+[    4.412271] of_cfs_init
+[    4.412351] of_cfs_init: OK
+[    4.414073] mmc0: new high speed SDHC card at address aaaa
+[    4.415293] tilcdc 4830e000.lcdc: [drm] Cannot find any crtc or sizes
+[    4.422360] mmcblk0: mmc0:aaaa SC16G 14.8 GiB 
+[    4.428260]  mmcblk0: p1 p2
+[    4.442715] VFS: Cannot open root device "(null)" or unknown-block(0,0): error -6
+[    4.442735] Please append a correct "root=" boot option; here are the available partitions:
+[    4.442763] b300         3735552 mmcblk1 
+[    4.442772]  driver: mmcblk
+[    4.442779]   b301           36864 mmcblk1p1 50bada2b-01
+[    4.442785] 
+[    4.442791]   b302          524288 mmcblk1p2 50bada2b-02
+[    4.442797] 
+[    4.442802]   b303         3170304 mmcblk1p3 50bada2b-03
+[    4.442808] 
+[    4.442820] 0b3:00300   15558144 mmcblk0 
+[    4.442826]  driver: mmcblk
+[    4.442832]   0b3:00301    2097152 mmcblk0p1 bce0e1d4-01
+[    4.442837] 
+[    4.442843]   0b3:00302   13459456 mmcblk0p2 bce0e1d4-02
+[    4.442849] 
+[    4.442855] Kernel panic - not syncing:
+[    4.442859] VFS: Unable to mount root fs on unknown-block(0,0)
+[    6.590040] ---[ end Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block(0,0) ]---
+
+- This log mean ROOTFS load from eMMC partition3.
+[    4.815190] EXT4-fs (mmcblk1p3): recovery complete
+[    4.816021] EXT4-fs (mmcblk1p3): mounted filesystem with ordered data mode. Opts: (null)
+
+u-boot compilation by using make commands: Need below commands to run before run of .sh file or menuconfig by using make commands
+
+below packages must install in ubuntu 24.04 version:
+=====================================================
+- sudo apt update && sudo apt install -y bison flex build-essential libssl-dev
+- sudo apt update && sudo apt install -y libncurses-dev
+
+Install the mkimage Tool: The kernel build system relies on a host utility named mkimage to generate this wrapper. Install it by running:
+
+- sudo apt update && sudo apt install -y u-boot-tools
+
+
+Linux compilation:
+================
+Error:
+======
+HOSTCC  scripts/sorttable
+  DTCO    arch/arm/boot/dts/overlays/BB-LCD-ADAFRUIT-24-SPI1-00A0.dtbo
+In file included from /home/kalyan-kumar/Desktop/BBB_Learning_WorkSpace/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/7.5.0/plugin/include/gcc-plugin.h:28,
+                 from scripts/gcc-plugins/gcc-common.h:7,
+                 from scripts/gcc-plugins/arm_ssp_per_task_plugin.c:3:
+/home/kalyan-kumar/Desktop/BBB_Learning_WorkSpace/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/7.5.0/plugin/include/system.h:687:10: fatal error: gmp.h: No such file or directory
+  687 | #include <gmp.h>
+      |          ^~~~~~~
+compilation terminated.
+
+solution:
+=========
+
+The compilation error still happens because your Linaro cross-compiler toolchain is trying to build a host-side GCC plugin, but your modern host system environment doesn't have the 64-bit multiarch development libraries mapped correctly for GCC's internal requirements.
+
+- sudo apt update && sudo apt install -y libgmp-dev libmpfr-dev libmpc-dev libssl-dev build-essential
+
+Error:
+=====
+/bin/sh: 1: lz4c: not found
+  CC      arch/arm/boot/compressed/misc.o
+make[2]: *** [arch/arm/boot/compressed/Makefile:188: arch/arm/boot/compressed/piggy_data] Error 127
+make[2]: *** Deleting file 'arch/arm/boot/compressed/piggy_data'
+make[2]: *** Waiting for unfinished jobs....
+make[1]: *** [arch/arm/boot/Makefile:64: arch/arm/boot/compressed/vmlinux] Error 2
+make: *** [arch/arm/Makefile:327: zImage] Error 2
+
+Solution:
+========
+The build failed because your host system is missing the LZ4 compression utility. The Linux kernel build framework tries to call lz4c to pack your kernel binary into a compressed image file (piggy_data). [1, 2, 3] 
+## The Fix
+Install the missing LZ4 legacy tools and developer packaging files depending on your Ubuntu version: [3, 4] 
+
+sudo apt update && sudo apt install -y liblz4-tool lz4
+
+## Why This Happened
+
+* lz4c: not found: Older kernel build frameworks explicitly expect the legacy binary tool wrapper name lz4c instead of just modern lz4.
+* Installing liblz4-tool creates the symlinks and commands required to satisfy the build system's script dependencies. [2, 5, 6] 
+
+## Resume Your Build
+Clear any broken artifact definitions and re-run your compilation command:
+
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -j$(nproc)
+
+Once this step runs to completion, your compiled, compressed image will be ready.
+Are you looking to output a zImage or do you need to convert it into a uImage using mkimage for U-Boot to load? [7, 8] 
+
+[1] [https://askubuntu.com](https://askubuntu.com/questions/1194913/couldnt-compile-kernel-with-patch)
+[2] [https://patchew.org](https://patchew.org/linux/20241114145645.563356-1-parth105105@gmail.com/)
+[3] [https://github.com](https://github.com/crops/poky-container/issues/67)
+[4] [https://community.nxp.com](https://community.nxp.com/t5/i-MX-Processors/imx-docker-build-fails-looking-for-quot-lz4c-pzstd-zstd-quot/m-p/1505863)
+[5] [https://manpages.ubuntu.com](https://manpages.ubuntu.com/manpages/trusty/man1/lz4c.1.html)
+[6] [https://tinker-board.asus.com](https://tinker-board.asus.com/forum/index.php?/topic/14988-kernel-build-error-lz4c/)
+[7] [https://stackoverflow.com](https://stackoverflow.com/questions/27856608/changes-required-in-u-boot-for-lz4-compression)
+[8] [https://stackoverflow.com](https://stackoverflow.com/questions/46930346/uncompressing-is-not-happening-with-zimage-while-booting-up-with-u-boot)
+
+Why the LOADADDR Argument is Mandatory:
+- LOADADDR=0x82000000: This tells U-Boot exactly where in the BeagleBone Black's physical DDR RAM to unpack and execute the kernel.
+- If you do not pass this parameter during compilation, the build will throw a fatal Argument mandatory error and fail.
+
+ssh beagle@192.168.6.2 --> beagle bone hw SSH connection. 
+pw: beagle
+
+beagle@BeagleBone:~$ uname -ar
+Linux BeagleBone 5.10.168-ti-r83 #1bookworm SMP PREEMPT Thu Aug 7 20:26:05 UTC 2025 armv7l GNU/Linux
+beagle@BeagleBone:~$ uname -r
+5.10.168-ti-r83
